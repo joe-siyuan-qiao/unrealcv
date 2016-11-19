@@ -30,4 +30,7 @@ public:
 	
 	/** Set object rotation */
 	FExecStatus SetObjectRotation(const TArray<FString>& Args); 
+    
+    /** Get all the actors' annotation colors */
+    FExecStatus GetAllActorColors(const TArray<FString> &Args);
 };

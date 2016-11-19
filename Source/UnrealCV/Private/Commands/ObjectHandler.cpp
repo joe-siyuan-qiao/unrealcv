@@ -43,6 +43,10 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
 	Help = "Set object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
+
+    Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetAllActorColors);
+    Help = "Get the colors of all the actors";
+    CommandDispatcher->BindCommand(TEXT("vget /allactorcolors"), Cmd, Help);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
@@ -224,4 +228,22 @@ FExecStatus FObjectCommandHandler::SetObjectRotation(const TArray<FString>& Args
 		return FExecStatus::OK();
 	}
 	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetAllActorColors(const TArray<FString> &Args)
+{
+    FString ColorsFileDir = FPaths::Combine(*FPaths::GameDir(), *FString("Data"), *FString("AnnotationColors.csv"));
+    FString FileContent = "";
+    for (TActorIterator<AActor> ActorIt(GWorld); ActorIt; ++ActorIt)
+    {
+        FString ActorId = ActorIt->GetName();
+        if (FObjectPainter::Get().ObjectsColorMapping.Contains(ActorId))
+        {
+            FColor ObjectColor = FObjectPainter::Get().ObjectsColorMapping[ActorId];
+            FString ObjectColorString = ObjectColor.ToString();
+            FileContent = FileContent + FString::Printf(TEXT("%s,%s\n"), *ActorId, *ObjectColorString);
+        }
+    }
+    FFileHelper::SaveStringToFile(FileContent, *ColorsFileDir);
+    return FExecStatus::OK();
 }
